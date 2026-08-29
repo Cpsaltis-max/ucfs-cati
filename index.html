@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>UCFS CATI MVP 0.3</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header>
+  <div><h1>UCFS CATI</h1><div class="muted small">GitHub Pages + Supabase + Teams + Qualtrics</div></div>
+  <div id="userBar" class="hidden"><span id="who"></span> <span id="role" class="pill"></span> <button id="logout" class="secondary">Log out</button></div>
+</header>
+<main>
+  <section id="loginCard" class="card">
+    <h2>Sign in</h2>
+    <div class="grid">
+      <div><label>Email</label><input id="email" type="email" placeholder="interviewer01@ucfs.test"></div>
+      <div><label>Password</label><input id="password" type="password"></div>
+    </div>
+    <div class="actions"><button id="loginBtn">Sign in</button></div>
+    <div id="loginMsg"></div>
+  </section>
+
+  <section id="interviewerView" class="hidden">
+    <div class="card">
+      <h2 id="studyName">Study</h2>
+      <div id="caseEmpty" class="muted">No case loaded.</div>
+      <div id="caseBox" class="hidden">
+        <div class="grid">
+          <div>
+            <div class="kv"><b>Case</b><span id="caseId"></span></div>
+            <div class="kv"><b>Respondent</b><span id="caseName"></span></div>
+            <div class="kv"><b>Phone</b><span id="casePhone"></span></div>
+            <div class="kv"><b>Language</b><span id="caseLanguage"></span></div>
+            <div class="kv"><b>Attempts</b><span id="caseAttempts"></span></div>
+          </div>
+          <div>
+            <div class="kv"><b>Gender</b><span id="caseGender"></span></div>
+            <div class="kv"><b>Stratum</b><span id="caseStratum"></span></div>
+            <div class="kv"><b>Age</b><span id="caseAge"></span></div>
+            <div class="kv"><b>Age band</b><span id="caseAgeBand"></span></div>
+            <div class="kv"><b>Callback</b><span id="caseCallback"></span></div>
+          </div>
+        </div>
+        <div class="actions">
+          <a id="teamsBtn" class="btn" target="_blank">☎ Call in Teams</a>
+          <a id="qualtricsBtn" class="btn secondary" target="_blank">Open Qualtrics</a>
+          <button id="releaseBtn" class="secondary">Release case</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="outcomeCard" class="card hidden">
+      <h3>Call result</h3>
+      <div class="grid">
+        <div><label>Outcome</label>
+          <select id="outcome">
+            <option value="">Choose...</option>
+            <option>COMPLETE</option><option>PARTIAL</option><option>NO_ANSWER</option>
+            <option>BUSY</option><option>REFUSAL</option><option>WRONG_NUMBER</option>
+            <option>INELIGIBLE</option><option>CALLBACK</option><option>OTHER</option>
+          </select>
+        </div>
+        <div><label>Callback date/time</label><input id="callbackAt" type="datetime-local"></div>
+      </div>
+      <div style="margin-top:12px"><label>Notes</label><textarea id="notes" rows="3"></textarea></div>
+      <div class="actions"><button id="saveNextBtn">Save & next case</button></div>
+      <div id="caseMsg"></div>
+    </div>
+  </section>
+
+  <section id="managementView" class="hidden">
+    <div class="card">
+      <h2>Supervisor / Administrator dashboard</h2>
+      <div id="stats" class="grid3"></div>
+    </div>
+    <div class="card">
+      <h3>Quota controls</h3>
+      <p class="muted">Quotas are optional and marginal. If more than one dimension is enabled, a case must remain open in every enabled dimension.</p>
+      <div class="grid3">
+        <label class="switch"><input id="qGender" type="checkbox"> Gender quotas</label>
+        <label class="switch"><input id="qStratum" type="checkbox"> 9-strata quotas</label>
+        <label class="switch"><input id="qAge" type="checkbox"> 5-year age-band quotas</label>
+      </div>
+      <div class="actions"><button id="saveQuotaToggles">Save quota toggles</button></div>
+      <div id="quotaTables"></div>
+    </div>
+    <div class="card">
+      <h3>Current reservations</h3>
+      <table><thead><tr><th>Case</th><th>Respondent</th><th>Interviewer</th><th>Status</th><th>Callback</th></tr></thead><tbody id="reservationRows"></tbody></table>
+    </div>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
