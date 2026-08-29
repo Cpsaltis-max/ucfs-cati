@@ -1,4 +1,3 @@
-
 const cfg = window.UCFS_CONFIG || {};
 const $ = id => document.getElementById(id);
 let sb, me, study, currentCase;
@@ -12,21 +11,32 @@ function qualtricsLink(c){
   u.searchParams.set('INTERVIEWER_ID', me.id);
   return u.toString();
 }
+
 async function init(){
   if(!cfg.SUPABASE_URL || cfg.SUPABASE_URL.includes('YOUR_PROJECT')){
-    msg($('loginMsg'),'Edit web/config.js with your Supabase URL and public anon key first.');
+    msg($('loginMsg'),'Edit config.js with your Supabase URL and public anon/publishable key first.');
     return;
   }
   sb = supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
   const {data:{session}} = await sb.auth.getSession();
   if(session) await enter(session.user);
 }
+
 $('loginBtn').onclick = async()=>{
   msg($('loginMsg'),'');
-  const {data,error}=await sb.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});
+  const emailValue = $('loginEmail').value.trim();
+  const passwordValue = $('loginPassword').value;
+  if (!emailValue || !passwordValue) {
+    return msg($('loginMsg'),'Enter both email and password.');
+  }
+  const {data,error}=await sb.auth.signInWithPassword({
+    email: emailValue,
+    password: passwordValue
+  });
   if(error) return msg($('loginMsg'),error.message);
   await enter(data.user);
 };
+
 $('logout').onclick=async()=>{await sb.auth.signOut();location.reload();};
 
 async function enter(user){
@@ -61,12 +71,14 @@ async function nextCase(){
   $('teamsBtn').href=teamsLink(currentCase.phone); $('qualtricsBtn').href=qualtricsLink(currentCase);
   $('outcome').value=''; $('callbackAt').value=''; $('notes').value=''; msg($('caseMsg'),'');
 }
+
 $('releaseBtn').onclick=async()=>{
   if(!currentCase)return;
   const {error}=await sb.rpc('release_case',{p_case:currentCase.id});
   if(error)return msg($('caseMsg'),error.message);
   currentCase=null; await nextCase(); if(me.role!=='INTERVIEWER')await loadManagement();
 };
+
 $('saveNextBtn').onclick=async()=>{
   const out=$('outcome').value; if(!out)return msg($('caseMsg'),'Choose an outcome.');
   const callback = $('callbackAt').value ? new Date($('callbackAt').value).toISOString() : null;
@@ -89,6 +101,7 @@ async function loadManagement(){
   const {data:q}=await sb.from('quota_targets').select('*').eq('study_id',study.id).order('dimension').order('category');
   renderQuotaTables(q||[]);
 }
+
 $('saveQuotaToggles').onclick=async()=>{
   const patch={quota_gender_enabled:$('qGender').checked,quota_stratum_enabled:$('qStratum').checked,quota_age_enabled:$('qAge').checked};
   const {data,error}=await sb.from('studies').update(patch).eq('id',study.id).select().single();
@@ -107,10 +120,12 @@ function renderQuotaTables(q){
     ${cats.map(cat=>{const x=map.get(d+'|'+cat);return `<tr><td>${cat}</td><td><input style="width:100px" type="number" min="0" id="qt_${btoa(unescape(encodeURIComponent(d+'|'+cat))).replaceAll('=','')}" value="${x?x.target:0}"></td><td><button class="secondary" onclick="saveQuota('${d}',${JSON.stringify(cat)})">Save</button></td></tr>`}).join('')}
     </tbody></table>`).join('');
 }
+
 window.saveQuota=async function(d,cat){
   const key=btoa(unescape(encodeURIComponent(d+'|'+cat))).replaceAll('=','');
   const target=parseInt($('qt_'+key).value||'0',10);
   const {error}=await sb.from('quota_targets').upsert({study_id:study.id,dimension:d,category:cat,target},{onConflict:'study_id,dimension,category'});
   if(error)alert(error.message); else alert('Quota target saved.');
 };
+
 init();
